@@ -1,7 +1,6 @@
 import warnings
 warnings.filterwarnings('ignore')
 
-# +
 import copy
 import numpy as pure_np
 import autograd.numpy as np
@@ -10,8 +9,6 @@ import scipy.sparse as spsp
 from numba import jit
 from autograd.extend import primitive, defvjp
 
-
-# +
 @primitive
 @jit(nopython=True)
 def A_matvec_1D(A, X):
@@ -189,8 +186,6 @@ def generate_full_A_2D_vjp(g, ans, A):
     return res
 
 defvjp(generate_full_A_2D, lambda ans, A: lambda g: generate_full_A_2D_vjp(g, ans, A))
-
-
 
 class DiscretizationMatrix(object):
     def __init__(self, dim, stencil=None):
