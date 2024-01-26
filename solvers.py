@@ -1,4 +1,3 @@
-# +
 import jax.numpy as jnp
 import scipy.special as scp
 import numpy as np
@@ -13,8 +12,6 @@ from jax.lax import scan
 from jax.experimental.sparse import BCOO, BCSR
 from jax.experimental.sparse.linalg import spsolve
 
-
-# +
 def tent(x, center, h):
     left_mask = (x <= center) & (x >= (center - h))
     right_mask = (x > center) & (x <= (center + h))
@@ -140,6 +137,3 @@ def FD_2D(N_points, F):
     b = f(coords[:, :, 0].reshape(-1,), coords[:, :, 1].reshape(-1,))
 
     return b, BCOO.from_scipy_sparse(A)
-# -
-
-
