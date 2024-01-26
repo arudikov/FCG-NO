@@ -205,12 +205,14 @@ def compute_loss_scan(carry, indices, analysis, synthesis):
     A_e = jsparse.bcoo_dot_general(A, error, dimension_numbers=((2, 1), (0, 0)))
     return carry, jnp.mean(jnp.sqrt(jnp.einsum('bi, bi -> b', B - error, B_e) / jnp.einsum('bi, bi -> b', error, A_e)))
 
+# Notay loss
 # def compute_loss(model, A, x, error, analysis, synthesis):
 #     B = vmap(lambda z: model(z, analysis, synthesis), in_axes=(0,))(x[:, None, :])[:, 0].reshape(x.shape[0], -1)
 #     B_e = jsparse.bcoo_dot_general(A, B - error, dimension_numbers=((2, 1), (0, 0)))
 #     A_e = jsparse.bcoo_dot_general(A, error, dimension_numbers=((2, 1), (0, 0)))
 #     return jnp.mean(jnp.sqrt(jnp.einsum('bi, bi -> b', B - error, B_e) / jnp.einsum('bi, bi -> b', error, A_e)))
 
+# l2-loss
 def compute_loss(model, A, input, target, analysis, synthesis):
     output = vmap(lambda z: model(z, analysis, synthesis), in_axes=(0,))(input[:, None, :]).reshape(input.shape[0], -1)
     l = jnp.mean(jnp.linalg.norm((output - target), axis=1)**2)
