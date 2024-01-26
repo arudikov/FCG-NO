@@ -1,4 +1,3 @@
-# +
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -33,10 +32,6 @@ from interpax import interp2d
 
 config.update("jax_enable_x64", True)
 
-# %matplotlib inline
-# %config InlineBackend.figure_format='retina'
-
-# +
 @jit
 def spsolve_scan(carry, n):
     A, r = carry
@@ -65,9 +60,6 @@ def get_functions(key):
     rhs = lambda x, y, c=c_[0]: random_polynomial_2D(x, y, c)
     return rhs
 
-
-# -
-
 def dataset(grid, N_samples, key):
     keys = random.split(key, N_samples)
     A, rhs = [], []
@@ -79,12 +71,10 @@ def dataset(grid, N_samples, key):
     A = device_put(jsparse.bcoo_concatenate(A, dimension=0))
     return A, jnp.array(rhs)
 
-
 def get_exact_solution(A, rhs, grid, N_samples):
     A_bcsr = jsparse.BCSR.from_bcoo(A)
     u_exact = jnp.stack([jsparse.linalg.spsolve(A_bcsr.data[n], A_bcsr.indices[n], A_bcsr.indptr[n], rhs[n].reshape(-1,)) for n in range(N_samples)]).reshape(N_samples, grid, grid)
     return u_exact
-
 
 def get_SNO(key, features_train, grid):
     input = features_train
@@ -147,7 +137,6 @@ def get_SNO(key, features_train, grid):
     }
     return model_data, optimization_specification
 
-
 def FCG(A, features, targets, model, N_iter, m_max, optimization_specification, eps=1e-30):
     def get_mi(i, m_max):
         if i == 0:
@@ -207,8 +196,6 @@ def FCG(A, features, targets, model, N_iter, m_max, optimization_specification, 
 
     return P, R, X, values, values_std
 
-
-# +
 @jit
 def compute_loss_scan(carry, indices, analysis, synthesis):
     model, A, x, error, N_repeats = carry
@@ -252,7 +239,6 @@ def train_on_epoch(key, batch_size, A, model, x, error, opt_state, make_step, N_
     opt_state = data[4]
     return epoch_loss, model, opt_state
 
-
 def test_on_epoch(key, batch_size, A, model, x, error, compute_loss, N_repeats):
     N_samples = len(x)
     list_of_indices = jnp.linspace(0, N_samples-1, N_samples, dtype=jnp.int64)
@@ -263,7 +249,6 @@ def test_on_epoch(key, batch_size, A, model, x, error, compute_loss, N_repeats):
     carry = [model, A, x, error, N_repeats]
     data, epoch_loss = scan(compute_loss, carry, n)
     return epoch_loss
-
 
 def train_model(model, A, x, error, optimization_specification, N_repeats):
     model = model
@@ -289,9 +274,6 @@ def train_model(model, A, x, error, optimization_specification, N_repeats):
 #         history_test.append(test_on_epoch(key, optimization_specification['batch_size'], A_test, model, x_test, error_test, optimization_specification['compute_loss'], N_repeats))
     return model, history#, history_test
 
-
-# -
-
 def get_dataset_rhs(state, key, grid):
     rhs = state[0]
     rhs = get_functions(key)
@@ -303,7 +285,6 @@ def get_dataset_rhs(state, key, grid):
     
     state = [rhs(xx, yy)]
     return state, state
-
 
 def generate_res_errors(grid, N_samples, N_repeats, A):
     residuals = [] 
@@ -331,7 +312,6 @@ def generate_res_errors(grid, N_samples, N_repeats, A):
     error = jnp.concatenate(error, axis=0)
     return residuals, error
 
-
 def save_data(model, values, values_std, R, history, path, experiment_name):
     data = {
         "loss_model": values,
@@ -345,7 +325,6 @@ def save_data(model, values, values_std, R, history, path, experiment_name):
     if type(model) != type(lambda x: x):
         with open(path + f"{experiment_name}_model", "wb") as f:
             cloudpickle.dump(model, f)
-
 
 def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path):
     h = 1. / grid
