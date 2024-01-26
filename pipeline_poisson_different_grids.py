@@ -20,7 +20,6 @@ from tqdm import tqdm
 from jax import device_put, clear_caches
 from functools import partial
 from jax.scipy.sparse.linalg import cg
-from IPython import display
 from transforms import utilities, cheb
 from collections import namedtuple
 from jax.lax import scan, dot_general
