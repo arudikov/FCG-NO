@@ -1,4 +1,3 @@
-# +
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -33,10 +32,6 @@ from interpax import interp2d
 
 config.update("jax_enable_x64", True)
 
-# %matplotlib inline
-# %config InlineBackend.figure_format='retina'
-
-# +
 @jit
 def spsolve_scan(carry, n):
     A, r = carry
@@ -65,9 +60,6 @@ def get_functions(key):
     rhs = lambda x, y, c=c_[0]: random_polynomial_2D(x, y, c)
     return rhs
 
-
-# -
-
 def dataset(grid, N_samples, key):
     keys = random.split(key, N_samples)
     A, rhs = [], []
@@ -79,12 +71,10 @@ def dataset(grid, N_samples, key):
     A = device_put(jsparse.bcoo_concatenate(A, dimension=0))
     return A, jnp.array(rhs)
 
-
 def get_exact_solution(A, rhs, grid, N_samples):
     A_bcsr = jsparse.BCSR.from_bcoo(A)
     u_exact = jnp.stack([jsparse.linalg.spsolve(A_bcsr.data[n], A_bcsr.indices[n], A_bcsr.indptr[n], rhs[n].reshape(-1,)) for n in range(N_samples)]).reshape(N_samples, grid, grid)
     return u_exact
-
 
 def get_SNO(key, features_train, grid):
     input = features_train
@@ -146,7 +136,6 @@ def get_SNO(key, features_train, grid):
         "synthesis": synthesis 
     }
     return model_data, optimization_specification
-
 
 def FCG(A, features, targets, model, N_iter, m_max, optimization_specification, analysis=None, synthesis=None, eps=1e-30):
     def get_mi(i, m_max):
@@ -231,77 +220,6 @@ def FCG(A, features, targets, model, N_iter, m_max, optimization_specification, 
 
     return P, R, X, values, values_std
 
-# +
-# def FCG(A, features, targets, model, N_iter, m_max, optimization_specification, analysis=None, synthesis=None, eps=1e-30):
-#     def get_mi(i, m_max):
-#         if i == 0:
-#             return 0
-#         else:
-#             return jnp.maximum(1, i % (m_max+1))
-
-#     samples = targets.shape[0]
-#     n = targets.shape[-1]
-#     poly_type = "Real_Fourier"
-
-#     X, P = jnp.zeros((samples, n, N_iter+1)), jnp.zeros((samples, n, N_iter))
-#     R = jnp.zeros((samples, n, N_iter+1))
-#     S = jnp.zeros((samples, n, N_iter))
-#     x0 = random.normal(random.PRNGKey(2), (samples, n)) 
-
-#     X = X.at[:, :, 0].set(x0)
-#     f = features
-#     R = R.at[:, :, 0].set(f - jsparse.bcoo_dot_general(A, x0, dimension_numbers=((2, 1),(0, 0))))
-#     train_losses, train_residuals = [], []
-#     train_residuals_std = []
-
-#     grid = int(n**0.5)
-#     h = 1. / grid
-
-#     values, values_std = [], []
-
-#     for idx in tqdm(range(N_iter)):
-#         train_residuals.append((jnp.linalg.norm(R[:, :, idx], axis=1) / jnp.linalg.norm(f, axis=1)).mean())
-#         train_residuals_std.append(st.t.interval(confidence=0.99, df=len(jnp.linalg.norm(R[:, :, idx], axis=1))-1, 
-#                                                  loc=train_residuals[-1], scale=st.sem((jnp.linalg.norm(R[:, :, idx], axis=1) / jnp.linalg.norm(f, axis=1)))))
-#         train_losses.append((jnp.linalg.norm(X[:, :, idx] * h ** 2 - targets, axis=1) / jnp.linalg.norm(targets, axis=1)).mean())
-                
-#         if type(model) != type(lambda x: x):
-#             train_data = R[:, :, idx].reshape(-1, grid, grid)
-#             train_data = uniform_to_polinomial(train_data, grid, poly_type)
-#             norm = jnp.linalg.norm(train_data, axis=(1,2))
-#             train_data = jnp.einsum('bij,b->bij', train_data, 1./norm)[:, None]
-
-#             output = vmap(model, in_axes=(0, None, None))(train_data, analysis, synthesis)[:, 0]
-#             output = polinomial_to_uniform(jnp.einsum('bij, b->bij', output, norm), grid, poly_type).reshape(-1, grid*grid)
-
-#             U = output
-
-#         else:
-#             history_train = []
-#             U = vmap(model)(R[:, :, idx])
-
-#         value = optimization_specification['res_func'](A,  U, R[:, :, idx])
-        
-#         values.append(value.mean())
-#         values_std.append(st.t.interval(confidence=0.99, df=len(value)-1, 
-#                                                  loc=values[-1], scale=st.sem(value)))
-
-#         j = get_mi(idx, m_max)
-#         P = P.at[:, :, idx].set(U)
-#         for k in range(j):
-#             alpha = - jnp.einsum('bj, bj->b', S[:, :, idx-k-1], U) / (jnp.einsum('bj, bj->b', S[:, :, idx-k-1], P[:, :, idx-k-1]) + eps)
-#             P = P.at[:, :, idx].add(jnp.einsum('b, bj->bj', alpha, P[:, :, idx-k-1]))
-        
-#         S = S.at[:, :, idx].set(jsparse.bcoo_dot_general(A, P[:, :, idx], dimension_numbers=((2, 1),(0, 0))))
-#         beta = jnp.einsum('bj, bj -> b', P[:, :, idx], R[:, :, idx]) / (jnp.einsum('bj, bj -> b', S[:, :, idx], P[:, :, idx]) + eps)
-
-#         X = X.at[:, :, idx+1].set(X[:, :, idx] + jnp.einsum('b, bj->bj', beta, P[:, :, idx]))
-#         R = R.at[:, :, idx+1].set(R[:, :, idx] - jnp.einsum('b, bj->bj', beta, S[:, :, idx]))
-
-
-#     return P, R, X, values, values_std
-# -
-
 def anal_synth(grid):
     polynomials = ['Real_Fourier', ] * 2
     parameters = [[0.1, 0.1],] * 2
@@ -321,8 +239,6 @@ def anal_synth(grid):
     analysis = utilities.get_operators("analysis", **data)
     return analysis, synthesis
 
-
-# +
 @jit
 def compute_loss_scan(carry, indices, analysis, synthesis):
     model, A, x, error, N_repeats = carry
@@ -361,7 +277,6 @@ def train_on_epoch(key, batch_size, A, model, x, error, opt_state, make_step, N_
     opt_state = data[4]
     return epoch_loss, model, opt_state
 
-
 def test_on_epoch(key, batch_size, A, model, x, error, compute_loss, N_repeats):
     N_samples = len(x)
     list_of_indices = jnp.linspace(0, N_samples-1, N_samples, dtype=jnp.int64)
@@ -372,7 +287,6 @@ def test_on_epoch(key, batch_size, A, model, x, error, compute_loss, N_repeats):
     carry = [model, A, x, error, N_repeats]
     data, epoch_loss = scan(compute_loss, carry, n)
     return epoch_loss
-
 
 def train_model(model, A, x, error, optimization_specification, N_repeats):
     model = model
@@ -398,9 +312,6 @@ def train_model(model, A, x, error, optimization_specification, N_repeats):
 #         history_test.append(test_on_epoch(key, optimization_specification['batch_size'], A_test, model, x_test, error_test, optimization_specification['compute_loss'], N_repeats))
     return model, history#, history_test
 
-
-# -
-
 def get_dataset_rhs(state, key, grid):
     rhs = state[0]
     rhs = get_functions(key)
@@ -412,7 +323,6 @@ def get_dataset_rhs(state, key, grid):
     
     state = [rhs(xx, yy)]
     return state, state
-
 
 def generate_res_errors(grid, N_samples, N_repeats, A):
     residuals = [] 
@@ -440,7 +350,6 @@ def generate_res_errors(grid, N_samples, N_repeats, A):
     error = jnp.concatenate(error, axis=0)
     return residuals, error
 
-
 @jit
 def interpolate_2D(carry, n):
     data, grids_in, grids_out = carry
@@ -448,8 +357,6 @@ def interpolate_2D(carry, n):
     data_intrp = vmap(jnp.interp, in_axes=(None, None, 1), out_axes=0)(grids_out[1], grids_in[1], data_intrp)
     return [data, grids_in, grids_out], data_intrp
 
-
-# +
 def uniform_to_polinomial(data, grid, poly_type):
     grids_in = [jnp.linspace(0, 1, grid+2)[1:-1], jnp.linspace(0, 1, grid+2)[1:-1]]
     grids_out = [lft.poly_data[poly_type]["nodes"](grid+1, [0, 0])[1:]]*2
@@ -464,9 +371,6 @@ def polinomial_to_uniform(data, grid, poly_type):
     _, data_intrp = scan(interpolate_2D, [data, grids_in, grids_out], jnp.arange(data.shape[0]))
     return jnp.array(data_intrp)
 
-
-# -
-
 def save_data(model, values, values_std, R, history, path, experiment_name):
     data = {
         "loss_model": values,
@@ -480,7 +384,6 @@ def save_data(model, values, values_std, R, history, path, experiment_name):
     if type(model) != type(lambda x: x):
         with open(path + f"{experiment_name}_model", "wb") as f:
             cloudpickle.dump(model, f)
-
 
 def main(model_type, train_generation, grid, N_samples, N_repeats, m_max, path):
     h = 1. / grid
@@ -528,7 +431,6 @@ def main(model_type, train_generation, grid, N_samples, N_repeats, m_max, path):
     save_data(model, values, values_std, R, history, path, f'{model_type}_{train_generation}_{grid}-{grid_fine}_{N_samples}_{N_repeats}_{m_max}')
 
     print(f'Done for {model_type}_{train_generation}_{grid}-{grid_fine}_{N_samples}_{N_repeats}_{m_max}')
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='pipeline')
