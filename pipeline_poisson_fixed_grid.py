@@ -400,6 +400,7 @@ if __name__ == "__main__":
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.cuda)
     
     grids = [32, 64, 128]
+    # path = f'./Poisson/notay_loss_'
     path = f'./Poisson/l2_loss_'
     m_max = 20
     
