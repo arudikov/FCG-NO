@@ -91,6 +91,7 @@ def solve_BVP_2D_scipy(N_points, F):
     sol[1:-1, 1:-1] = sol_.reshape((N_points-2, N_points-2))
     return jnp.array(sol.reshape(-1,))
 
+
 def FD_2D(N_points, F):
     N = M = N_points
     sigma, f = F
@@ -111,8 +112,8 @@ def FD_2D(N_points, F):
 
     x = jnp.linspace(0, 1, N+2)[1:-1]
     y = jnp.linspace(0, 1, M+2)[1:-1]
-    h_x = 1. / N
-    h_y = 1. / M
+    h_x = x[1] - x[0]
+    h_y = y[1] - y[0]
     coords = jnp.stack(jnp.meshgrid(x, y, indexing='ij'), 2)
     ind = jnp.stack(jnp.meshgrid(jnp.arange(N), jnp.arange(M), indexing='ij'), 2).reshape(-1, 2)
 
