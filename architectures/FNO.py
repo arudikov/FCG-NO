@@ -1,9 +1,10 @@
 import jax.numpy as jnp
 import equinox as eqx
 
-from jax import  config, random, vmap, tree_map
+from jax import  config, random, vmap, tree_map, jit
 from jax.lax import dot_general
 from jax.nn import relu, leaky_relu, hard_tanh, gelu
+from functools import partial
 config.update("jax_enable_x64", True)
 
 class FNO1D(eqx.Module):
@@ -11,7 +12,7 @@ class FNO1D(eqx.Module):
     encoder_decoder: list
     A: list
     D: list
-    N_modes: int
+    N_modes: int = eqx.field(static=True)
 
     def __init__(self, N_layers, N_features, N_modes, key):
         keys_A = random.split(key, N_layers+3)
@@ -52,7 +53,7 @@ class FNO2D(eqx.Module):
     An: list
     Dp: list
     Dn: list
-    N_modes: int
+    N_modes: int = eqx.field(static=True)
 
     def __init__(self, N_layers, N_features, N_modes, key):
         keys_Ap = random.split(key, N_layers+5)
@@ -70,19 +71,21 @@ class FNO2D(eqx.Module):
         self.Dn = [random.normal(key, (N_features[1], N_features[1], N_modes, 1)) / N_features[1] for key in keys_Dn]
         self.N_modes = N_modes
 
-    def __call__(self, u, x):
+    def __call__(self, u):
+        x = jnp.linspace(0, 1, u.shape[-1])
+        x = jnp.stack(jnp.meshgrid(x, x), 0)
         u = jnp.concatenate([x, u], 0)
         u = self.encoder_decoder[0](u)
         for i in range(len(self.Ap)):
             v = self.convs[i](u)
             u = jnp.fft.rfftn(u, axes=[1, 2])
-            u = u.at[:, :(self.N_modes+1), :1].set(self.ax(self.Dp[i] + 0j, u[:, :(self.N_modes+1), :1]))
+            u = u.at[:, :self.N_modes+1, :1].set(self.ax(self.Dp[i] + 0j, u[:, :self.N_modes+1, :1]))
             u = u.at[:, -self.N_modes:, :1].set(self.ax(self.Dn[i] + 0j, u[:, -self.N_modes:, :1]))
 
-            u = u.at[:, :(self.N_modes+1), 1:(self.N_modes+1)].set(self.ax(self.Ap[i] + 0j, u[:, :(self.N_modes+1), 1:(self.N_modes+1)]))
-            u = u.at[:, -self.N_modes:, 1:(self.N_modes+1)].set(self.ax(self.An[i] + 0j, u[:, -self.N_modes:, 1:(self.N_modes+1)]))
-            u = u.at[:, :, (self.N_modes+1):].set(0)
-            u = u.at[:, (self.N_modes+1):-self.N_modes, :].set(0)
+            u = u.at[:, :self.N_modes+1, 1:self.N_modes+1].set(self.ax(self.Ap[i] + 0j, u[:, :self.N_modes+1, 1:self.N_modes+1]))
+            u = u.at[:, -self.N_modes:, 1:self.N_modes+1].set(self.ax(self.An[i] + 0j, u[:, -self.N_modes:, 1:self.N_modes+1]))
+            u = u.at[:, :, self.N_modes+1:].set(0)
+            u = u.at[:, self.N_modes+1:-self.N_modes, :].set(0)
             u = jnp.fft.irfftn(u, axes=[1, 2], s=v.shape[1:])
             u = u + v
             if i != (len(self.Ap) - 1):
