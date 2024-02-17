@@ -2,7 +2,7 @@ import jax.numpy as jnp
 import equinox as eqx
 
 from jax import config, random, vmap
-from jax.nn import relu
+from jax.nn import gelu
 from typing import Callable
 config.update("jax_enable_x64", True)
 
@@ -18,7 +18,7 @@ class ConvNet(eqx.Module):
 
     def __call__(self, x):
         for c in self.convs:
-            x = relu(c(x))
+            x = gelu(c(x))
         return x
 
 class UNet(eqx.Module):
@@ -27,7 +27,7 @@ class UNet(eqx.Module):
     after_d_convs: list
     after_convs: list
     right_after_convs: list
-    pool: list
+    pool: list = eqx.field(static=True)
     conv_t: list
 
     def __init__(self, D, staring_N, features, kernel_size, N_convs, key, depth=5):
