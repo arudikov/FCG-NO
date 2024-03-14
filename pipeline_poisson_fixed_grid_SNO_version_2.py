@@ -1,4 +1,3 @@
-# +
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -151,7 +150,7 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
     grid = int(n**0.5)
     h = 1. / grid
 
-    values, values_std = [], []
+    values = []
 
     for idx in range(N_iter):
         norm = jnp.linalg.norm(R[:, :, idx], axis=1)
@@ -168,8 +167,6 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
             value = optimization_specification['res_func'](A,  U, R[:, :, idx])
 
             values.append(value)
-#             values_std.append(st.t.interval(confidence=0.99, df=len(value)-1, 
-#                                                  loc=values[-1], scale=st.sem(value)))
 
         P = U
         for k in range(len(P_list)):
@@ -188,64 +185,7 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
         P_list.append(P)
         S_list.append(S)
         
-    return P, R, X, values#, values_std
-
-
-
-
-# def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30, count_values=False):
-#     samples = features.shape[0]
-#     n = features.shape[-1]
-
-#     X = jnp.zeros((n, N_iter+1))
-#     R = jnp.zeros((n, N_iter+1))
-#     P_list, S_list = [], []
-#     x0 = random.normal(random.PRNGKey(2), (n,)) 
-
-#     X = X.at[:, 0].set(x0)
-#     f = features
-#     R = R.at[:, 0].set(f - A@x0)
-
-#     grid = int(n**0.5)
-#     h = 1. / grid
-
-#     values = []
-
-#     for idx in tqdm(range(N_iter)):
-#         norm = jnp.linalg.norm(R[:, idx])
-        
-#         train_data = []
-#         if type(model) != type(lambda x: x):
-#             output = model((R[:, idx]/norm).reshape(1, grid, grid), optimization_specification["analysis"], optimization_specification["synthesis"]).reshape(-1, grid**2)
-# #             output = pmap(model, in_axes=(0, None, None))((R[:, idx]/norm).reshape(-1, 1, grid, grid), optimization_specification["analysis"], optimization_specification["synthesis"])[:, 0]
-#             U = output[0]*norm
-
-#         else:
-#             history_train = []
-#             U = pmap(model)(R[:, idx][None])[0]
-#         if count_values:
-#             value = optimization_specification['res_func'](A.reshape(1, grid**2, -1),  U.reshape(1, -1), R[:, idx].reshape(1, -1))
-
-#             values.append(value.mean())
-
-#         P = U
-#         for k in range(len(P_list)):
-#             alpha = - jnp.dot(S_list[k], U) / (jnp.dot(S_list[k], P_list[k]) + eps)
-#             P += alpha * P_list[k]
-
-#         S = A @ P
-#         beta = jnp.dot(P, R[:, idx]) / (jnp.dot(S, P) + eps)
-
-#         X = X.at[:, idx+1].set(X[:, idx] + beta*P)
-#         R = R.at[:, idx+1].set(R[:, idx] - beta*S)
-        
-#         if (idx % (m_max+1) == m_max) | (idx % (m_max + 1) == 0):
-#             P_list = []
-#             S_list = []
-#         P_list.append(P)
-#         S_list.append(S)
-        
-#     return P, R, X, values
+    return P, R, X, values
 
 @jit
 def compute_loss_scan(carry, indices, analysis, synthesis):
@@ -394,8 +334,6 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
             clear_caches()
             R_ = jnp.concatenate(R_, axis=0)
             X_ = jnp.concatenate(X_, axis=0)
-#             FCG_ = partial(FCG, model=model_, N_iter=N_repeats-1, m_max=m_max, optimization_specification=optimization_specification, count_values=False)
-#             _, R_, X_, _ = vmap(FCG_)(A_train, rhs_train)
             residuals = R_.transpose(0, 2, 1).reshape(-1, grid, grid)
             norm = jnp.linalg.norm(residuals, axis=(1, 2))
             residuals = jnp.einsum('bij, b -> bij', residuals, 1./norm)
@@ -421,13 +359,6 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         N_samples = 20
         A_test, rhs_test = dataset(grid=grid, N_samples=N_samples, key=key)
         N_iter = min(int(grid*2.5), 400)
-
-#         A_bcsr = jsparse.BCSR.from_bcoo(A_test)
-#         u_exact = jnp.stack([jsparse.linalg.spsolve(A_bcsr.data[n], A_bcsr.indices[n], A_bcsr.indptr[n], rhs_test[n].reshape(-1,)) for n in range(N_samples)])
-#         del A_bcsr
-#         clear_caches()
-#         FCG_ = partial(FCG, model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=False)
-#         _, R, _, values = vmap(FCG_)(A_test, rhs_test)#FCG(A_test, rhs_test, model, N_iter, m_max, optimization_specification, count_values=True)
         R, values = [], []
         for j in tqdm(range(N_samples//4)):
             _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=True)
@@ -476,6 +407,3 @@ if __name__ == "__main__":
     
     for grid in grids:
         main(args.model, args.gentype, grid, args.sdiv, args.nrep, m_max, path)
-# -
-
-
