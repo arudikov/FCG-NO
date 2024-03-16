@@ -1,3 +1,4 @@
+# +
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -112,7 +113,7 @@ def get_SNO(key, features_train, grid):
     if grid <= 64:
         N_features = max(48, grid)
     else:
-        N_features = min(80, grid // 2)
+        N_features = max(80, grid // 2)
     N_layers = 4
 
     model = fSNO.fSNO(input_shape, N_features_out, N_layers, N_features, cell, key)
@@ -122,7 +123,7 @@ def get_SNO(key, features_train, grid):
     if grid <= 64:
         batch_size = 32
     else:
-        batch_size = 8
+        batch_size = 4
     learning_rate = 5e-4
     
     model_data = {
@@ -142,7 +143,7 @@ def get_SNO(key, features_train, grid):
     }
     return model_data, optimization_specification
 
-def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30, count_values=False):
+def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30, count_values=False, j=0):
     samples = features.shape[0]
     n = features.shape[-1]
 
@@ -150,7 +151,7 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
     R = jnp.zeros((samples, n, N_iter+1))
     P_list, S_list = [], []
 
-    X = X.at[:, :, 0].set(random.normal(random.PRNGKey(2), (samples, n)))
+    X = X.at[:, :, 0].set(random.normal(random.PRNGKey(j), (samples, n)))
     R = R.at[:, :, 0].set(features - jsparse.bcoo_dot_general(A, X[:, :, 0], dimension_numbers=((2, 1),(0, 0))))
 
     grid = int(n**0.5)
@@ -273,7 +274,7 @@ def train_model(model, A, x, error, optimization_specification, N_repeats):
 
 def get_dataset_rhs(state, key, grid):
     rhs = state[0]
-    rhs = get_functions(key)
+    rhs = get_rhs(key)
     
     x = jnp.linspace(0, 1, num=grid+2)[1:-1]
     y = jnp.linspace(0, 1, num=grid+2)[1:-1]
@@ -333,21 +334,28 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
             optimization_specification = {"res_func": lambda A, B, input: res_func(A, B, input)}
             R_, X_ = [], []
             for j in tqdm(range(N_samples//2)):
-                _, R, X, _ = FCG(A_train[j*2:(j+1)*2], rhs_train[j*2:(j+1)*2], model=model_, N_iter=N_repeats-1, m_max=m_max, optimization_specification=optimization_specification, count_values=False)
+                _, R, X, _ = FCG(A_train[j*2:(j+1)*2], rhs_train[j*2:(j+1)*2], model=model_, N_iter=N_repeats-1, m_max=m_max, optimization_specification=optimization_specification, count_values=False, j=j)
                 R_.append(device_put(R, device=jax.devices("cpu")[0]))
                 X_.append(device_put(X, device=jax.devices("cpu")[0]))
+            
             del R, X
             clear_caches()
+            
             R_ = jnp.concatenate(R_, axis=0)
             X_ = jnp.concatenate(X_, axis=0)
+            
             residuals = R_.transpose(0, 2, 1).reshape(-1, grid, grid)
             norm = jnp.linalg.norm(residuals, axis=(1, 2))
+            
             residuals = jnp.einsum('bij, b -> bij', residuals, 1./norm)
             u_exact = device_put(get_exact_solution(A_train, rhs_train, grid=grid, N_samples=N_samples), device=jax.devices("cpu")[0])
+            
             del rhs_train
             clear_caches()
+            
             error = (jnp.repeat(u_exact.reshape(-1, grid**2)[:, :, None], N_repeats, axis=2) - X_).transpose(0, 2, 1).reshape((N_samples * N_repeats, -1, grid))
             error = jnp.einsum('bij, b -> bij', error, 1./norm).reshape(N_samples * N_repeats, -1)
+            
             del R_, X_, u_exact
             clear_caches()
         else:
@@ -368,11 +376,13 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
 
         R, values = [], []
         for j in tqdm(range(N_samples//4)):
-            _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=True)
+            _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=True, j=j)
             R.append(R_)
             values.append(jnp.array(values_))
+        
         del R_, values_
         clear_caches()
+        
         R = jnp.concatenate(R, axis=0)
         values = jnp.concatenate(values, axis=1).mean(axis=1)
  
