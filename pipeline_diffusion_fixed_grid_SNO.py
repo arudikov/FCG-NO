@@ -282,9 +282,7 @@ def train_model(model, A, x, error, optimization_specification, N_repeats):
         key = random.PRNGKey(it)
         loss, model, opt_state = train_on_epoch(key, optimization_specification['batch_size'], A, model, x, error, opt_state, make_step, N_repeats)
         history.append(loss)
-        
-#         history_test.append(test_on_epoch(key, optimization_specification['batch_size'], A_test, model, x_test, error_test, optimization_specification['compute_loss'], N_repeats))
-    return model, history#, history_test
+    return model, history
 
 def get_dataset_rhs(state, key, grid):
     rhs = state[0]
