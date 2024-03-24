@@ -1,3 +1,4 @@
+# +
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -165,7 +166,6 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
             U = vmap(model)(R[:, :, idx])
         if count_values:
             value = optimization_specification['res_func'](A,  U, R[:, :, idx])
-
             values.append(value)
 
         P = U
@@ -368,6 +368,7 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         N_iter = min(int(grid*2.5), 400)
 
         R, values = [], []
+        count_values = False
         for j in tqdm(range(N_samples//4)):
             _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=True, j=j)
             R.append(R_)
@@ -377,24 +378,34 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         clear_caches()
         
         R = jnp.concatenate(R, axis=0)
-        values = jnp.concatenate(values, axis=1).mean(axis=1)
+        
+        if count_values:
+            values = jnp.concatenate(values, axis=1).mean(axis=1)
  
     if model_type == 'Id':
         key = random.PRNGKey(12)
         N_samples = 20
         A_test, rhs_test = dataset(grid=grid, N_samples=N_samples, key=key)
         N_iter = min(grid*4, 400)
-
-        A_bcsr = jsparse.BCSR.from_bcoo(A_test)
-        u_exact = jnp.stack([jsparse.linalg.spsolve(A_bcsr.data[n], A_bcsr.indices[n], A_bcsr.indptr[n], rhs_test[n].reshape(-1,)) for n in range(N_samples)])
-        
-        del A_bcsr
-        clear_caches()
         
         model = lambda x: x
         history = []
         optimization_specification = {"res_func": lambda A, B, input: res_func(A, B, input)}
-        _, R, _, values = FCG(A_test, rhs_test, model, N_iter, m_max, optimization_specification, count_values=True)
+        
+        R, values = [], []
+        count_values = False
+        for j in tqdm(range(N_samples//4)):
+            _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=count_values, j=j)
+            R.append(R_)
+            values.append(jnp.array(values_))
+        
+        del R_, values_
+        clear_caches()
+        
+        R = jnp.concatenate(R, axis=0)
+        
+        if count_values:
+            values = jnp.concatenate(values, axis=1).mean(axis=1)
         
     save_data(model, values, R, history, path, f'{model_type}_{train_generation}_{grid}_{samples_div}_{N_repeats}_{m_max}')
 
@@ -410,7 +421,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.cuda
     
-    grids = [32, 64, 256]
+    grids = [32]
     path = f'./Poisson/SNO/notay_loss_'
     # path = f'./Poisson/l2_loss_'
     m_max = 20
