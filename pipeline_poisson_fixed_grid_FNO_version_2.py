@@ -85,7 +85,6 @@ def get_FNO(key, features_train, grid):
         N_features = 32
     else:
         N_features = grid // 4
-    N_layers = 4
         
     N_layers = 4
     N_features_out = 1
