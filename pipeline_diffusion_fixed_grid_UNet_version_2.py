@@ -1,4 +1,3 @@
-# +
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -410,7 +409,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.cuda
     
-    grids = [32]
+    grids = [32, 64, 128]
     path = f'./Elliptic/UNet/notay_loss_'
     # path = f'./Elliptic/UNet/l2_loss_'
     m_max = 20
