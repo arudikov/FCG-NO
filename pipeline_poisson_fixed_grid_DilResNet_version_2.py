@@ -134,10 +134,8 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
     h = 1. / grid
 
     values = []
-    times = []
 
     for idx in range(N_iter):
-        start = time.time()
         norm = jnp.linalg.norm(R[:, :, idx], axis=1)
         
         train_data = [jnp.einsum('bi,b->bi', R[:, :, idx], 1./norm)]
@@ -169,8 +167,6 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
             
         P_list.append(P)
         S_list.append(S)
-        end = time.time()
-        times.append(end - start)
         
     return P, R, X, values
 
