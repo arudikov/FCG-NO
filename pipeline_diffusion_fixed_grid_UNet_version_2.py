@@ -396,7 +396,6 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
             values = jnp.concatenate(values, axis=1).mean(axis=1)
         
     save_data(model, values, R, history, path, f'{model_type}_{train_generation}_{grid}_{samples_div}_{N_repeats}_{m_max}')
-
     print(f'Done for {model_type}_{train_generation}_{grid}_{samples_div}_{N_repeats}_{m_max}')
     
 if __name__ == "__main__":
