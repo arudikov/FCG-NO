@@ -367,7 +367,7 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         N_iter = min(int(grid*2.5), 400)
 
         R, values = [], []
-        count_values = False
+        count_values = True
         for j in tqdm(range(N_samples//4)):
             _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=True, j=j)
             R.append(R_)
@@ -392,7 +392,7 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         optimization_specification = {"res_func": lambda A, B, input: res_func(A, B, input)}
         
         R, values = [], []
-        count_values = False
+        count_values = True
         for j in tqdm(range(N_samples//4)):
             _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=count_values, j=j)
             R.append(R_)
