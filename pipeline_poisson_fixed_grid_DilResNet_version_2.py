@@ -1,11 +1,9 @@
-# +
 import warnings
 warnings.filterwarnings('ignore')
 
 import os
 import jax
 import sys
-import time
 import optax
 import cloudpickle
 import itertools
@@ -356,13 +354,11 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         N_iter = min(int(grid*2.5), 400)
         
         R, values = [], []
-#         times = []
         count_values = False
         for j in tqdm(range(N_samples//4)):
             _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=True, j=j)
             R.append(R_)
             values.append(jnp.array(values_))
-#             times.append(times_)
         
         del R_, values_
         clear_caches()
@@ -383,13 +379,11 @@ def main(model_type, train_generation, grid, samples_div, N_repeats, m_max, path
         optimization_specification = {"res_func": lambda A, B, input: res_func(A, B, input)}
         
         R, values = [], []
-#         times = []
         count_values = False
         for j in tqdm(range(N_samples//4)):
             _, R_, _, values_ = FCG(A_test[j*4:(j+1)*4], rhs_test[j*4:(j+1)*4], model=model, N_iter=N_iter, m_max=m_max, optimization_specification=optimization_specification, count_values=count_values, j=j)
             R.append(R_)
             values.append(jnp.array(values_))
-#             times.append(times_)
         
         del R_, values_
         clear_caches()
@@ -415,7 +409,7 @@ if __name__ == "__main__":
     
     grids = [32]
     path = f'./Poisson/DilResNet/notay_loss_'
-    # path = f'./Poisson/l2_loss_'
+    # path = f'./Poisson/DilResNet/l2_loss_'
     m_max = 20
     
     for grid in grids:
