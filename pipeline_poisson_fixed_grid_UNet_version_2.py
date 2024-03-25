@@ -133,7 +133,6 @@ def FCG(A, features, model, N_iter, m_max, optimization_specification, eps=1e-30
     h = 1. / grid
 
     values = []
-    times = []
 
     for idx in range(N_iter):
         norm = jnp.linalg.norm(R[:, :, idx], axis=1)
