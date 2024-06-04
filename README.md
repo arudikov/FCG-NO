@@ -2,7 +2,7 @@
 
 Here are some examples of notebooks demonstrating the application of the proposed approach for solving Poisson and Diffusion equations:
 
-1. Fixed Grid
+1. Fixed Grid:
 + [FCG with SNO for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20Poisson%202D.ipynb)
   + [Update FCG with SNO for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/Update%20FCG%2C%20SNO%2C%20Poisson%202D.ipynb)
 + [FCG with SNO for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20Diffusion%202D.ipynb)
@@ -14,11 +14,17 @@ Here are some examples of notebooks demonstrating the application of the propose
 + [FCG with UNet for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20UNet%2C%20Poisson%202D.ipynb)
 + [FCG with UNet for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20UNet%2C%20Diffusion%202D.ipynb)
 
-2. Different Grids
+2. Different Grids:
 + [FCG with SNO for different grids for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20different%20grids%2C%20Poisson%202D.ipynb)
 + [FCG with SNO for different grids for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20different%20grids%2C%20Diffusion%202D.ipynb)
 
-
+Here are some examples of  \underline{pipelines} for solving Poisson and Diffusion equation, including cases where the grid is fixed and where the grid is switched from coarse to fine:
+1. Fixed Grid:
+ + [FCG with SNO for Poisson 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_poisson_fixed_grid_SNO.py)
+ + [FCG with SNO for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_diffusion_fixed_grid_SNO.py)
+2. Different Grids:
+ + [FCG with SNO for different grids for Poisson 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_poisson_diff_grids_SNO.py)
+ + [FCG with SNO for different grids for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_diffusion_diff_grids_SNO.py)
 ## Citing
 If you use this code in your work, we kindly ask you to cite cite [the paper](https://arxiv.org/abs/2402.05598)
 ```
