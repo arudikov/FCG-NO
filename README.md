@@ -18,7 +18,7 @@ Here are some examples of notebooks demonstrating the application of the propose
 + [FCG with SNO for different grids for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20different%20grids%2C%20Poisson%202D.ipynb)
 + [FCG with SNO for different grids for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20different%20grids%2C%20Diffusion%202D.ipynb)
 
-Here are some examples of  \underline{pipelines} for solving Poisson and Diffusion equation, including cases where the grid is fixed and where the grid is switched from coarse to fine:
+Here are some examples of pipelines for solving Poisson and Diffusion equation, including cases where the grid is fixed and where the grid is switched from coarse to fine:
 1. Fixed Grid:
  + [FCG with SNO for Poisson 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_poisson_fixed_grid_SNO.py)
  + [FCG with SNO for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_diffusion_fixed_grid_SNO.py)
