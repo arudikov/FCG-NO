@@ -1,7 +1,8 @@
 # Neural operators meet conjugate gradients: The FCG-NO method for efficient PDE solving
 
 Here are some examples of notebooks for different Neural Operators (SNO, FNO) and Neural Networks (DilResNet, UNet) for Poisson and Diffusion equations:
-Fixed Grid
+
+1. Fixed Grid
 + [FCG with SNO for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20Poisson%202D.ipynb)
   + [Update FCG with SNO for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/Update%20FCG%2C%20SNO%2C%20Poisson%202D.ipynb)
 + [FCG with SNO for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20Diffusion%202D.ipynb)
@@ -13,7 +14,7 @@ Fixed Grid
 + [FCG with UNet for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20UNet%2C%20Poisson%202D.ipynb)
 + [FCG with UNet for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20UNet%2C%20Diffusion%202D.ipynb)
 
-Different Grids
+2. Different Grids
 + [FCG with SNO for different grids for Poisson 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20different%20grids%2C%20Poisson%202D.ipynb)
 + [FCG with SNO for different grids for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/notebooks/FCG%2C%20SNO%2C%20different%20grids%2C%20Diffusion%202D.ipynb)
 
