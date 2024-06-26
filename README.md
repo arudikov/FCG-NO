@@ -26,7 +26,7 @@ Here are some examples of pipelines for solving Poisson and Diffusion equation, 
  + [FCG with SNO for different grids for Poisson 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_poisson_diff_grids_SNO.py)
  + [FCG with SNO for different grids for Diffusion 2D](https://github.com/arudikov/FCG/blob/main/pipelines/pipeline_diffusion_diff_grids_SNO.py)
 ## Citing
-If you use this code in your work, we kindly ask you to cite cite [the paper](https://arxiv.org/abs/2402.05598)
+If you use this code in your work, we kindly ask you to cite [the paper](https://arxiv.org/abs/2402.05598)
 ```
 @article{rudikov2024neural,
   title={Neural operators meet conjugate gradients: The FCG-NO method for efficient PDE solving},
